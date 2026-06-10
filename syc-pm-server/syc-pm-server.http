@@ -1,0 +1,6 @@
+@syc_pm_server_HostAddress = http://localhost:5082
+
+GET {{syc_pm_server_HostAddress}}/api/test
+Accept: application/json
+
+###

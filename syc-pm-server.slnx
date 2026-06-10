@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="syc-pm-server.Application/syc-pm-server.Application.csproj" />
+  <Project Path="syc-pm-server.Domain/syc-pm-server.Domain.csproj" />
+  <Project Path="syc-pm-server.Infrastructure/syc-pm-server.Infrastructure.csproj" />
+  <Project Path="syc-pm-server/syc-pm-server.csproj" />
+</Solution>
