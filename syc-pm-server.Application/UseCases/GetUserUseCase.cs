@@ -1,16 +1,20 @@
-﻿using syc_pm_server.Domain.Entities;
+﻿using syc_pm_server.Application.Interfaces;
+using syc_pm_server.Domain.Entities;
 
-namespace syc_pm_server.Application.UseCases
+namespace syc_pm_server.Application.UseCases;
+
+public class GetUserUseCase
 {
-    public class GetUserUseCase
+    private readonly IUserRepository _userRepository;
+
+    public GetUserUseCase(IUserRepository userRepository)
     {
-        public User Execute()
-        {
-            return new User
-            {
-                Id = Guid.NewGuid(),
-                Username = "test-user"
-            };
-        }
+        _userRepository = userRepository;
+    }
+
+    public async Task<User?> Execute(string username)
+    {
+        return await _userRepository.GetByUsernameAsync(username);
     }
 }
+

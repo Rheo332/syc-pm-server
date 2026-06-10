@@ -14,10 +14,13 @@ public class UserController : ControllerBase
         _getUserUseCase = getUserUseCase;
     }
 
-    [HttpGet]
-    public IActionResult Get()
+    [HttpGet("{username}")]
+    public async Task<IActionResult> Get(string username)
     {
-        var user = _getUserUseCase.Execute();
+        var user = await _getUserUseCase.Execute(username);
+        if (user == null)
+            return NotFound();
+
         return Ok(user);
     }
 }
