@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using syc_pm_server.Application.DTO;
 using syc_pm_server.Application.UseCases;
 
 namespace syc_pm_server.Controllers;
@@ -15,9 +16,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var result = _loginUseCase.Execute(request);
+        var result = await _loginUseCase.Execute(request);
 
         if (!result.Success)
             return Unauthorized(result);

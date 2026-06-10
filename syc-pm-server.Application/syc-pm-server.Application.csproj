@@ -11,8 +11,4 @@
     <ProjectReference Include="..\syc-pm-server.Domain\syc-pm-server.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
-
 </Project>
