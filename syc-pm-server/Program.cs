@@ -4,15 +4,18 @@ using syc_pm_server.Application.Security;
 using syc_pm_server.Application.UseCases;
 using syc_pm_server.Domain.Entities;
 using syc_pm_server.Infrastructure.Persistence;
+using syc_pm_server.Infrastructure.Repositories;
 using syc_pm_server.Infrastructure.Security;
+using syc_pm_server.Infrastructure.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Add services to the container.
 builder.Services.AddScoped<GetUserUseCase>();
 builder.Services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
-builder.Services.AddScoped<LoginUseCase>();
+builder.Services.AddScoped<LoginUserUseCase>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -41,7 +44,7 @@ using (var scope = app.Services.CreateScope())
         {
             Id = Guid.NewGuid(),
             Username = "admin",
-            PasswordHash = hasher.Hash("1234")
+            PasswordHash = hasher.Hash("1234", "salt")
         });
 
         db.SaveChanges();

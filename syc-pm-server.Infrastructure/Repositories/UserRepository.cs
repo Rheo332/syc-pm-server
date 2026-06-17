@@ -3,6 +3,8 @@ using syc_pm_server.Application.Interfaces;
 using syc_pm_server.Domain.Entities;
 using syc_pm_server.Infrastructure.Persistence;
 
+namespace syc_pm_server.Infrastructure.Repositories;
+
 public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _db;

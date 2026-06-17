@@ -5,42 +5,31 @@ namespace syc_pm_server.Infrastructure.Security;
 
 public class Pbkdf2PasswordHasher : IPasswordHasher
 {
-    private const int SaltSize = 16;
+    private const int Iterations = 200000;
     private const int KeySize = 32;
-    private const int Iterations = 100000;
 
-    public string Hash(string password)
+    public string Hash(string password, string salt)
     {
-        byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
+        var saltBytes = Convert.FromBase64String(salt);
 
-        var hash = Rfc2898DeriveBytes.Pbkdf2(
+        var hashBytes = Rfc2898DeriveBytes.Pbkdf2(
             password,
-            salt,
+            saltBytes,
             Iterations,
             HashAlgorithmName.SHA256,
             KeySize
         );
 
-        return $"{Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
+        return Convert.ToBase64String(hashBytes);
     }
 
-    public bool Verify(string password, string hash)
+    public bool Verify(string password, string salt, string hash)
     {
-        var parts = hash.Split('.');
-        if (parts.Length != 3) return false;
+        var computedHash = Hash(password, salt);
 
-        int iterations = int.Parse(parts[0]);
-        byte[] salt = Convert.FromBase64String(parts[1]);
-        byte[] storedHash = Convert.FromBase64String(parts[2]);
-
-        var computedHash = Rfc2898DeriveBytes.Pbkdf2(
-            password,
-            salt,
-            iterations,
-            HashAlgorithmName.SHA256,
-            storedHash.Length
+        return CryptographicOperations.FixedTimeEquals(
+            Convert.FromBase64String(computedHash),
+            Convert.FromBase64String(hash)
         );
-
-        return CryptographicOperations.FixedTimeEquals(computedHash, storedHash);
     }
 }
