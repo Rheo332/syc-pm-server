@@ -8,13 +8,13 @@ public class LoginUserUseCase
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
-    //private readonly IJwtTokenService _jwt;
+    private readonly IJwtTokenService _jwt;
 
-    public LoginUserUseCase(IUserRepository userRepository, IPasswordHasher passwordHasher)
+    public LoginUserUseCase(IUserRepository userRepository, IPasswordHasher passwordHasher, IJwtTokenService jwt)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
-        // _jwt = jwt;
+        _jwt = jwt;
     }
 
     public async Task<LoginResponse> Execute(LoginRequest request)
@@ -29,14 +29,14 @@ public class LoginUserUseCase
         if (!ok)
             return new LoginResponse { Success = false, Message = "Login nicht erfolgreich" };
 
-        // var token = _jwt.CreateToken(user);
+        var token = _jwt.CreateToken(user);
 
         return new LoginResponse
         {
             UserId = user.Id,
             PublicKey = user.PublicKey,
             EncryptedPrivateKey = user.EncryptedPrivateKey,
-            // Token = token,
+            Token = token,
             Success = true,
             Message = "Login erfolgreich"
         };

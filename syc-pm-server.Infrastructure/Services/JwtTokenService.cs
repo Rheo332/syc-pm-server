@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using syc_pm_server.Application.Interfaces;
 using syc_pm_server.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -6,11 +7,6 @@ using System.Text;
 
 namespace syc_pm_server.Infrastructure.Services
 {
-    public interface IJwtTokenService
-    {
-        string CreateToken(User user);
-    }
-
     public class JwtTokenService : IJwtTokenService
     {
         public string CreateToken(User user)
