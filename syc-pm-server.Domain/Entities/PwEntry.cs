@@ -3,8 +3,7 @@
     public class PwEntry
     {
         public Guid Id { get; set; }
-        public Guid VaultId { get; set; }
-        public Vault Vault { get; set; } = null!;
+        public ICollection<PwEntryAccess> AuthorizedUsers { get; set; } = new List<PwEntryAccess>();
         public string Title { get; set; } = null!;
         public string Username { get; set; } = null!;
         public string EncryptedPassword { get; set; } = null!;

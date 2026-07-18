@@ -8,6 +8,6 @@
         public string PasswordSalt { get; set; } = null!;
         public string PublicKey { get; set; } = null!;
         public string EncryptedPrivateKey { get; set; } = null!;
-        public ICollection<VaultMember> VaultMembers { get; set; } = new List<VaultMember>();
+        public ICollection<PwEntryAccess> PwEntryAccesses { get; set; } = new List<PwEntryAccess>();
     }
 }

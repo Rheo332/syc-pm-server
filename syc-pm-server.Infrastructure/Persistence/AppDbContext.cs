@@ -12,25 +12,24 @@ public class AppDbContext : DbContext
 
     public DbSet<PwEntry> PwEntries => Set<PwEntry>();
     public DbSet<User> Users => Set<User>();
-    public DbSet<Vault> Vaults => Set<Vault>();
-    public DbSet<VaultMember> VaultMembers => Set<VaultMember>();
+    public DbSet<PwEntryAccess> PwEntryAccesses => Set<PwEntryAccess>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<VaultMember>()
-            .HasKey(vm => new { vm.VaultId, vm.UserId });
+        modelBuilder.Entity<PwEntryAccess>()
+            .HasKey(ea => new { ea.PwEntryId, ea.UserId });
 
-        modelBuilder.Entity<VaultMember>()
-            .HasOne(vm => vm.User)
-            .WithMany(u => u.VaultMembers)
-            .HasForeignKey(vm => vm.UserId);
+        modelBuilder.Entity<PwEntryAccess>()
+            .HasOne(ea => ea.User)
+            .WithMany(u => u.PwEntryAccesses)
+            .HasForeignKey(ea => ea.UserId);
 
-        modelBuilder.Entity<VaultMember>()
-            .HasOne(vm => vm.Vault)
-            .WithMany(v => v.Members)
-            .HasForeignKey(vm => vm.VaultId);
+        modelBuilder.Entity<PwEntryAccess>()
+            .HasOne(ea => ea.PwEntry)
+            .WithMany(e => e.AuthorizedUsers)
+            .HasForeignKey(ea => ea.PwEntryId);
 
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)

@@ -18,7 +18,7 @@ namespace syc_pm_server.Infrastructure.Services
         };
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("SUPER_SECRET_KEY_CHANGE_ME") // TODO: muss noch in eine Konfigurationsdatei ausgelagert werden
+                Encoding.UTF8.GetBytes("SUPER_SECRET_KEY_CHANGE_ME_NOW_WITH_ENOUGH_BITS") // TODO: muss noch in eine Konfigurationsdatei ausgelagert werden
             );
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
