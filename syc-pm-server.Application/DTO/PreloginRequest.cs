@@ -1,8 +1,7 @@
 ﻿namespace syc_pm_server.Application.DTO
 {
-    public class LoginRequest
+    public class PreloginRequest
     {
         public string Username { get; set; } = null!;
-        public string AuthHash { get; set; } = null!;
     }
 }

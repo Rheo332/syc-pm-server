@@ -9,10 +9,19 @@ namespace syc_pm_server.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly LoginUserUseCase _loginUser;
+    private readonly PreloginUseCase _prelogin;
 
-    public AuthController(LoginUserUseCase loginUser)
+    public AuthController(LoginUserUseCase loginUser, PreloginUseCase prelogin)
     {
         _loginUser = loginUser;
+        _prelogin = prelogin;
+    }
+
+    [HttpPost("prelogin")]
+    public async Task<IActionResult> Prelogin([FromBody] PreloginRequest request)
+    {
+        var result = await _prelogin.Execute(request);
+        return Ok(result);
     }
 
     [HttpPost("login")]

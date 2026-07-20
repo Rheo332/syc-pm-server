@@ -1,19 +1,17 @@
 ﻿using syc_pm_server.Application.DTO;
 using syc_pm_server.Application.Interfaces;
-using syc_pm_server.Application.Security;
+using System.Security.Cryptography;
 
 namespace syc_pm_server.Application.UseCases;
 
 public class LoginUserUseCase
 {
     private readonly IUserRepository _userRepository;
-    private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwt;
 
-    public LoginUserUseCase(IUserRepository userRepository, IPasswordHasher passwordHasher, IJwtTokenService jwt)
+    public LoginUserUseCase(IUserRepository userRepository, IJwtTokenService jwt)
     {
         _userRepository = userRepository;
-        _passwordHasher = passwordHasher;
         _jwt = jwt;
     }
 
@@ -21,23 +19,23 @@ public class LoginUserUseCase
     {
         var user = await _userRepository.GetByUsernameAsync(request.Username);
 
-        if (user == null)
+        if (user is null)
             return new LoginResponse { Success = false, Message = "Login nicht erfolgreich" };
 
-        var ok = _passwordHasher.Verify(request.Password, user.PasswordSalt, user.PasswordHash);
+        var expected = Convert.FromBase64String(user.PasswordHash);
+        var provided = Convert.FromBase64String(request.AuthHash);
 
-        if (!ok)
+        if (expected.Length != provided.Length || !CryptographicOperations.FixedTimeEquals(expected, provided))
             return new LoginResponse { Success = false, Message = "Login nicht erfolgreich" };
 
         var token = _jwt.CreateToken(user);
 
         return new LoginResponse
         {
-            UserId = user.Id,
+            Success = true,
             PublicKey = user.PublicKey,
             EncryptedPrivateKey = user.EncryptedPrivateKey,
             Token = token,
-            Success = true,
             Message = "Login erfolgreich"
         };
     }

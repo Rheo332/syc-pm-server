@@ -7,5 +7,6 @@
         public string Title { get; set; } = null!;
         public string Username { get; set; } = null!;
         public string EncryptedPassword { get; set; } = null!;
+        public string Description { get; set; } = null!;
     }
 }

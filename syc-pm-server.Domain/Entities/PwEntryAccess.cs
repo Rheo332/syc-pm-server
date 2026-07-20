@@ -7,6 +7,5 @@ namespace syc_pm_server.Domain.Entities
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;
         public string EncryptedEntryKey { get; set; } = null!;
-        public string Role { get; set; } = "user";
     }
 }

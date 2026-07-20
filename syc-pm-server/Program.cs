@@ -17,6 +17,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<GetUserUseCase>();
 builder.Services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddScoped<LoginUserUseCase>();
+builder.Services.AddScoped<PreloginUseCase>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
@@ -98,6 +99,7 @@ using (var scope = app.Services.CreateScope())
             Username = username,
             PasswordSalt = Convert.ToBase64String(dbSalt),
             PasswordHash = Convert.ToBase64String(finalHash),
+            Pbkdf2Salt = Convert.ToBase64String(masterSalt),
             PublicKey = publicKeyStr,
             EncryptedPrivateKey = Convert.ToBase64String(combinedData)
         });
