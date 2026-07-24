@@ -3,7 +3,7 @@
     public class PwEntry
     {
         public Guid Id { get; set; }
-        public ICollection<PwEntryAccess> AuthorizedUsers { get; set; } = new List<PwEntryAccess>();
+        public ICollection<PwEntryAccess> AuthorizedUsers { get; set; } = [];
         public string Title { get; set; } = null!;
         public string Username { get; set; } = null!;
         public string EncryptedPassword { get; set; } = null!;

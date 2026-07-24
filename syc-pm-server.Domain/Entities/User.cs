@@ -9,6 +9,6 @@
         public string Pbkdf2Salt { get; set; } = null!;
         public string PublicKey { get; set; } = null!;
         public string EncryptedPrivateKey { get; set; } = null!;
-        public ICollection<PwEntryAccess> PwEntryAccesses { get; set; } = new List<PwEntryAccess>();
+        public ICollection<PwEntryAccess> PwEntryAccesses { get; set; } = [];
     }
 }

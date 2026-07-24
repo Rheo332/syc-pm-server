@@ -113,7 +113,7 @@ using (var scope = app.Services.CreateScope())
 
     // Create seed PwEntries
     var existingEntries = db.PwEntries.ToList();
-    if (existingEntries.Any())
+    if (existingEntries.Count != 0)
     {
         db.PwEntries.RemoveRange(existingEntries);
         await db.SaveChangesAsync();
