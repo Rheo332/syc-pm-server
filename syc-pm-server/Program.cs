@@ -14,12 +14,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Add services to the container.
-builder.Services.AddScoped<GetUserUseCase>();
 builder.Services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
+
+builder.Services.AddScoped<GetPwEntryUseCase>();
+builder.Services.AddScoped<GetUserUseCase>();
 builder.Services.AddScoped<LoginUserUseCase>();
 builder.Services.AddScoped<PreloginUseCase>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IPwEntryRepository, PwEntryRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -103,6 +107,78 @@ using (var scope = app.Services.CreateScope())
             PublicKey = publicKeyStr,
             EncryptedPrivateKey = Convert.ToBase64String(combinedData)
         });
+    }
+
+    await db.SaveChangesAsync();
+
+    // Create seed PwEntries
+    var existingEntries = db.PwEntries.ToList();
+    if (existingEntries.Any())
+    {
+        db.PwEntries.RemoveRange(existingEntries);
+        await db.SaveChangesAsync();
+    }
+
+    var entriesToSeed = new[]
+    {
+        new { Title = "My Google Account", Username = "my_email@gmail.com", Password = "google_password123", Description = "Main google account" },
+        new { Title = "GitHub", Username = "dev_user", Password = "github_password456", Description = "Work github account" }
+    };
+
+    var allUsers = db.Users.ToList();
+
+    foreach (var entryInfo in entriesToSeed)
+    {
+        // 1. Generate Data Encryption Key (DEK) for the entry
+        var entryDek = new byte[32];
+        RandomNumberGenerator.Fill(entryDek);
+
+        // 2. Encrypt the entry password with the DEK using AES-GCM
+        var nonce = new byte[12];
+        RandomNumberGenerator.Fill(nonce);
+
+        var tag = new byte[16];
+        var passwordBytes = Encoding.UTF8.GetBytes(entryInfo.Password);
+        var ciphertext = new byte[passwordBytes.Length];
+
+        using (var aesGcm = new AesGcm(entryDek, tag.Length))
+        {
+            aesGcm.Encrypt(nonce, passwordBytes, ciphertext, tag);
+        }
+
+        var combinedPwData = new byte[nonce.Length + tag.Length + ciphertext.Length];
+        Buffer.BlockCopy(nonce, 0, combinedPwData, 0, nonce.Length);
+        Buffer.BlockCopy(tag, 0, combinedPwData, nonce.Length, tag.Length);
+        Buffer.BlockCopy(ciphertext, 0, combinedPwData, nonce.Length + tag.Length, ciphertext.Length);
+
+        var pwEntry = new PwEntry
+        {
+            Id = Guid.NewGuid(),
+            Title = entryInfo.Title,
+            Username = entryInfo.Username,
+            Description = entryInfo.Description,
+            EncryptedPassword = Convert.ToBase64String(combinedPwData)
+        };
+        db.PwEntries.Add(pwEntry);
+
+        // 3. Create PwEntryAccess for each user
+        foreach (var user in allUsers)
+        {
+            // Encrypt the DEK with the user's public key
+            var publicKeyBytes = Convert.FromBase64String(user.PublicKey);
+            using var userRsa = RSA.Create();
+            userRsa.ImportRSAPublicKey(publicKeyBytes, out _);
+
+            var encryptedDek = userRsa.Encrypt(entryDek, RSAEncryptionPadding.OaepSHA256);
+
+            var access = new PwEntryAccess
+            {
+                PwEntryId = pwEntry.Id,
+                UserId = user.Id,
+                EncryptedEntryKey = Convert.ToBase64String(encryptedDek)
+            };
+            db.PwEntryAccesses.Add(access);
+        }
     }
 
     await db.SaveChangesAsync();
