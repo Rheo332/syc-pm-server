@@ -4,6 +4,6 @@ namespace syc_pm_server.Application.Interfaces;
 
 public interface IPwEntryRepository
 {
-    Task<List<PwEntry>?> GetAllPwEntries();
+    Task<List<PwEntryAccess>> GetUserEntriesAsync(string username);
 }
 

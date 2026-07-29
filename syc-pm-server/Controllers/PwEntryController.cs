@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using syc_pm_server.Application.DTO;
 using syc_pm_server.Application.UseCases;
 
 namespace syc_pm_server.Controllers;
@@ -14,11 +15,11 @@ public class PwEntryController : ControllerBase
         _getPwEntryUseCase = getPwEntryUseCase;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Get()
+    [HttpPost]
+    public async Task<IActionResult> Get([FromBody] PwEntryRequest request)
     {
-        var pwEntries = await _getPwEntryUseCase.Execute();
-        return Ok(pwEntries);
+        var response = await _getPwEntryUseCase.Execute(request);
+        return Ok(response);
     }
 }
 

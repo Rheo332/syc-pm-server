@@ -14,8 +14,11 @@ public class PwEntryRepository : IPwEntryRepository
         _db = db;
     }
 
-    public async Task<List<PwEntry>?> GetAllPwEntries()
+    public async Task<List<PwEntryAccess>> GetUserEntriesAsync(string username)
     {
-        return await _db.PwEntries.ToListAsync();
+        return await _db.PwEntryAccesses
+            .Include(ea => ea.PwEntry)
+            .Where(ea => ea.User.Username == username)
+            .ToListAsync();
     }
 }

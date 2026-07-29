@@ -1,5 +1,5 @@
-﻿using syc_pm_server.Application.Interfaces;
-using syc_pm_server.Domain.Entities;
+﻿using syc_pm_server.Application.DTO;
+using syc_pm_server.Application.Interfaces;
 
 namespace syc_pm_server.Application.UseCases;
 
@@ -12,9 +12,19 @@ public class GetPwEntryUseCase
         _pwEntryRepository = pwEntryRepository;
     }
 
-    public async Task<List<PwEntry>?> Execute()
+    public async Task<PwEntryResponse> Execute(PwEntryRequest request)
     {
-        return await _pwEntryRepository.GetAllPwEntries();
+        var accesses = await _pwEntryRepository.GetUserEntriesAsync(request.Username);
+
+        var entries = accesses.Select(a => a.PwEntry
+        /*new PwEntry
+        {
+            //PwEntry = a.PwEntry,
+            //EncryptedEntryKey = a.EncryptedEntryKey
+        }*/
+        ).ToList();
+
+        return new PwEntryResponse { PwEntries = entries };
     }
 }
 

@@ -11,16 +11,20 @@ using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(x => 
+    x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
 // Add services to the container.
 builder.Services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
 
+// UseCases
 builder.Services.AddScoped<GetPwEntryUseCase>();
 builder.Services.AddScoped<GetUserUseCase>();
 builder.Services.AddScoped<LoginUserUseCase>();
 builder.Services.AddScoped<PreloginUseCase>();
+builder.Services.AddScoped<GetPwEntryUseCase>();
 
+// Repositories
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPwEntryRepository, PwEntryRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -29,7 +33,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//PostgreSQL EF Core
+// PostgreSQL EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
