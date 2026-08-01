@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using syc_pm_server.Application.DTO;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using syc_pm_server.Application.UseCases;
+using System.Security.Claims;
 
 namespace syc_pm_server.Controllers;
 
@@ -15,10 +16,12 @@ public class PwEntryController : ControllerBase
         _getPwEntryUseCase = getPwEntryUseCase;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Get([FromBody] PwEntryRequest request)
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetEntries()
     {
-        var response = await _getPwEntryUseCase.Execute(request);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var response = await _getPwEntryUseCase.Execute(userId);
         return Ok(response);
     }
 }

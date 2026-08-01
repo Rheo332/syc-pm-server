@@ -12,17 +12,11 @@ public class GetPwEntryUseCase
         _pwEntryRepository = pwEntryRepository;
     }
 
-    public async Task<PwEntryResponse> Execute(PwEntryRequest request)
+    public async Task<PwEntryResponse> Execute(Guid userId)
     {
-        var accesses = await _pwEntryRepository.GetUserEntriesAsync(request.Username);
+        var accesses = await _pwEntryRepository.GetUserEntriesAsync(userId);
 
-        var entries = accesses.Select(a => a.PwEntry
-        /*new PwEntry
-        {
-            //PwEntry = a.PwEntry,
-            //EncryptedEntryKey = a.EncryptedEntryKey
-        }*/
-        ).ToList();
+        var entries = accesses.Select(a => a.PwEntry).ToList();
 
         return new PwEntryResponse { PwEntries = entries };
     }

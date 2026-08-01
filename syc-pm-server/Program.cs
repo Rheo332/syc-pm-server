@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using syc_pm_server.Application.Interfaces;
 using syc_pm_server.Application.Security;
@@ -11,7 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllers().AddJsonOptions(x => 
+builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
 // Add services to the container.
@@ -25,9 +26,29 @@ builder.Services.AddScoped<PreloginUseCase>();
 builder.Services.AddScoped<GetPwEntryUseCase>();
 
 // Repositories
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPwEntryRepository, PwEntryRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// JWT
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = "syc-pm",
+            ValidAudience = "syc-pm",
+
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes("SUPER_SECRET_KEY_CHANGE_ME_NOW_WITH_ENOUGH_BITS") // TODO: muss noch in eine Konfigurationsdatei ausgelagert werden
+            )
+        };
+    });
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -125,8 +146,8 @@ using (var scope = app.Services.CreateScope())
 
     var entriesToSeed = new[]
     {
-        new { Title = "My Google Account", Username = "my_email@gmail.com", Password = "google_password123", Description = "Main google account" },
-        new { Title = "GitHub", Username = "dev_user", Password = "github_password456", Description = "Work github account" }
+        new { Title = "My Google Account", Url = "https://google.com", Username = "my_email@gmail.com", Password = "google_password123", Description = "Main google account" },
+        new { Title = "GitHub", Url = "https://github.com", Username = "dev_user", Password = "github_password456", Description = "Work github account" }
     };
 
     var allUsers = db.Users.ToList();
@@ -159,6 +180,7 @@ using (var scope = app.Services.CreateScope())
         {
             Id = Guid.NewGuid(),
             Title = entryInfo.Title,
+            Url = entryInfo.Url,
             Username = entryInfo.Username,
             Description = entryInfo.Description,
             EncryptedPassword = Convert.ToBase64String(combinedPwData)
@@ -190,6 +212,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
