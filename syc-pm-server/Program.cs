@@ -15,15 +15,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
-// Add services to the container.
+// Services
 builder.Services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
 
 // UseCases
+builder.Services.AddScoped<CreatePwEntryUseCase>();
 builder.Services.AddScoped<GetPwEntryUseCase>();
 builder.Services.AddScoped<GetUserUseCase>();
 builder.Services.AddScoped<LoginUserUseCase>();
 builder.Services.AddScoped<PreloginUseCase>();
-builder.Services.AddScoped<GetPwEntryUseCase>();
 
 // Repositories
 builder.Services.AddScoped<IPwEntryRepository, PwEntryRepository>();
