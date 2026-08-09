@@ -27,16 +27,14 @@ public class PwEntryRepository : IPwEntryRepository
     public async Task<bool> CreateAsync(PwEntry pwEntry, Guid userId)
     {
         var user = await _db.Users.FindAsync(userId);
-        if (user == null || user.Username != "admin") // muss noch angepasst werden, um die Admin-Rolle zu überprüfen
+        if (user == null || user.Username != "admin")
         {
             return false;
         }
 
-        // 1. Generate Data Encryption Key (DEK) for the entry
         var entryDek = new byte[32];
         RandomNumberGenerator.Fill(entryDek);
 
-        // 2. Encrypt the entry password with the DEK using AES-GCM
         var nonce = new byte[12];
         RandomNumberGenerator.Fill(nonce);
 
@@ -72,6 +70,80 @@ public class PwEntryRepository : IPwEntryRepository
             EncryptedEntryKey = Convert.ToBase64String(encryptedDek)
         };
         _db.PwEntryAccesses.Add(access);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteAsync(Guid entryId, Guid userId)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null || user.Username != "admin")
+        {
+            return false;
+        }
+
+        var entry = await _db.PwEntries.FindAsync(entryId);
+        if (entry == null) return false;
+
+        var accesses = await _db.PwEntryAccesses.Where(a => a.PwEntryId == entryId).ToListAsync();
+        _db.PwEntryAccesses.RemoveRange(accesses);
+
+        _db.PwEntries.Remove(entry);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdateAsync(PwEntry pwEntry, Guid userId)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null || user.Username != "admin")
+        {
+            return false;
+        }
+
+        var existing = await _db.PwEntries.FindAsync(pwEntry.Id);
+        if (existing == null) return false;
+
+        existing.Title = pwEntry.Title;
+        existing.Url = pwEntry.Url;
+        existing.Username = pwEntry.Username;
+        existing.Description = pwEntry.Description;
+
+        // new DEK if password changed
+        if (!string.IsNullOrEmpty(pwEntry.EncryptedPassword) && existing.EncryptedPassword != pwEntry.EncryptedPassword)
+        {
+            var entryDek = new byte[32];
+            RandomNumberGenerator.Fill(entryDek);
+
+            var nonce = new byte[12];
+            RandomNumberGenerator.Fill(nonce);
+
+            var tag = new byte[16];
+            var passwordBytes = Encoding.UTF8.GetBytes(pwEntry.EncryptedPassword);
+            var ciphertext = new byte[passwordBytes.Length];
+
+            using (var aesGcm = new AesGcm(entryDek, tag.Length))
+            {
+                aesGcm.Encrypt(nonce, passwordBytes, ciphertext, tag);
+            }
+
+            var combinedPwData = new byte[nonce.Length + tag.Length + ciphertext.Length];
+            Buffer.BlockCopy(nonce, 0, combinedPwData, 0, nonce.Length);
+            Buffer.BlockCopy(tag, 0, combinedPwData, nonce.Length, tag.Length);
+            Buffer.BlockCopy(ciphertext, 0, combinedPwData, nonce.Length + tag.Length, ciphertext.Length);
+
+            existing.EncryptedPassword = Convert.ToBase64String(combinedPwData);
+
+            var publicKeyBytes = Convert.FromBase64String(user!.PublicKey);
+            using var userRsa = RSA.Create();
+            userRsa.ImportRSAPublicKey(publicKeyBytes, out _);
+
+            var encryptedDek = userRsa.Encrypt(entryDek, RSAEncryptionPadding.OaepSHA256);
+
+            var access = await _db.PwEntryAccesses.FirstOrDefaultAsync(a => a.PwEntryId == pwEntry.Id && a.UserId == user.Id);
+            access?.EncryptedEntryKey = Convert.ToBase64String(encryptedDek);
+        }
+
         await _db.SaveChangesAsync();
         return true;
     }

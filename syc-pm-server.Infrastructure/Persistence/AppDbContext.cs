@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<PwEntry> PwEntries => Set<PwEntry>();
     public DbSet<User> Users => Set<User>();
     public DbSet<PwEntryAccess> PwEntryAccesses => Set<PwEntryAccess>();
+    public DbSet<Request> Requests => Set<Request>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

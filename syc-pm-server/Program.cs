@@ -20,15 +20,21 @@ builder.Services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
 
 // UseCases
 builder.Services.AddScoped<CreatePwEntryUseCase>();
+builder.Services.AddScoped<EditPwEntryUseCase>();
+builder.Services.AddScoped<DeletePwEntryUseCase>();
 builder.Services.AddScoped<GetPwEntryUseCase>();
 builder.Services.AddScoped<GetUserUseCase>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddScoped<LoginUserUseCase>();
 builder.Services.AddScoped<PreloginUseCase>();
+builder.Services.AddScoped<CreateRequestUseCase>();
+builder.Services.AddScoped<GetRequestsUseCase>();
+builder.Services.AddScoped<DeleteRequestUseCase>();
 
 // Repositories
 builder.Services.AddScoped<IPwEntryRepository, PwEntryRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 
 // JWT
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();

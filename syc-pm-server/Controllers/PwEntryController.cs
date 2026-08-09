@@ -12,11 +12,19 @@ public class PwEntryController : ControllerBase
 {
     private readonly GetPwEntryUseCase _getPwEntryUseCase;
     private readonly CreatePwEntryUseCase _createPwEntryUseCase;
+    private readonly EditPwEntryUseCase _editPwEntryUseCase;
+    private readonly DeletePwEntryUseCase _deletePwEntryUseCase;
 
-    public PwEntryController(GetPwEntryUseCase getPwEntryUseCase, CreatePwEntryUseCase createPwEntryUseCase)
+    public PwEntryController(
+        GetPwEntryUseCase getPwEntryUseCase, 
+        CreatePwEntryUseCase createPwEntryUseCase,
+        EditPwEntryUseCase editPwEntryUseCase,
+        DeletePwEntryUseCase deletePwEntryUseCase)
     {
         _getPwEntryUseCase = getPwEntryUseCase;
         _createPwEntryUseCase = createPwEntryUseCase;
+        _editPwEntryUseCase = editPwEntryUseCase;
+        _deletePwEntryUseCase = deletePwEntryUseCase;
     }
 
     [Authorize]
@@ -37,6 +45,32 @@ public class PwEntryController : ControllerBase
         if (response)
         {
             return Ok(response);
+        }
+        return BadRequest();
+    }
+
+    [Authorize]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> EditEntry(Guid id, [FromBody] CreatePwEntryRequest request)
+    {
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var response = await _editPwEntryUseCase.ExecuteAsync(userId, id, request);
+        if (response)
+        {
+            return Ok();
+        }
+        return BadRequest();
+    }
+
+    [Authorize]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> RemoveEntry(Guid id)
+    {
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var response = await _deletePwEntryUseCase.ExecuteAsync(userId, id);
+        if (response)
+        {
+            return Ok();
         }
         return BadRequest();
     }

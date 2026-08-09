@@ -26,13 +26,22 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
+    [HttpGet("admin/publickey")]
+    public async Task<IActionResult> GetAdminPublicKey()
+    {
+        var admin = await _getUserUseCase.Execute("admin");
+        if (admin == null) return NotFound("Admin user not found");
+
+        return Ok(new { publicKey = admin.PublicKey });
+    }
+
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] syc_pm_server.Application.DTO.CreateUserRequest request)
+    public async Task<IActionResult> Create([FromBody] Application.DTO.CreateUserRequest request)
     {
         var success = await _createUserUseCase.Execute(request);
         if (!success)
-            return Conflict(new { Message = "Benutzername existiert bereits" });
+            return Conflict(new { Message = "Username already exists" });
 
-        return Ok(new { Message = "Benutzer erfolgreich erstellt" });
+        return Ok(new { Message = "User created successfully" });
     }
 }
