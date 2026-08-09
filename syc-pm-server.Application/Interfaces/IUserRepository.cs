@@ -5,4 +5,5 @@ namespace syc_pm_server.Application.Interfaces;
 public interface IUserRepository
 {
     Task<User?> GetByUsernameAsync(string username);
+    Task AddAsync(User user);
 }
