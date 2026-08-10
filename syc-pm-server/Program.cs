@@ -30,6 +30,10 @@ builder.Services.AddScoped<PreloginUseCase>();
 builder.Services.AddScoped<CreateRequestUseCase>();
 builder.Services.AddScoped<GetRequestsUseCase>();
 builder.Services.AddScoped<DeleteRequestUseCase>();
+builder.Services.AddScoped<GrantAccessUseCase>();
+builder.Services.AddScoped<GetAllUsersUseCase>();
+builder.Services.AddScoped<GetUserAccessUseCase>();
+builder.Services.AddScoped<RevokeAccessUseCase>();
 
 // Repositories
 builder.Services.AddScoped<IPwEntryRepository, PwEntryRepository>();

@@ -9,11 +9,38 @@ public class UserController : ControllerBase
 {
     private readonly GetUserUseCase _getUserUseCase;
     private readonly CreateUserUseCase _createUserUseCase;
+    private readonly GetAllUsersUseCase _getAllUsersUseCase;
+    private readonly GetUserAccessUseCase _getUserAccessUseCase;
 
-    public UserController(GetUserUseCase getUserUseCase, CreateUserUseCase createUserUseCase)
+    public UserController(
+        GetUserUseCase getUserUseCase, 
+        CreateUserUseCase createUserUseCase,
+        GetAllUsersUseCase getAllUsersUseCase,
+        GetUserAccessUseCase getUserAccessUseCase)
     {
         _getUserUseCase = getUserUseCase;
         _createUserUseCase = createUserUseCase;
+        _getAllUsersUseCase = getAllUsersUseCase;
+        _getUserAccessUseCase = getUserAccessUseCase;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var users = await _getAllUsersUseCase.Execute();
+        return Ok(users.Select(u => new
+        {
+            u.Id,
+            u.Username,
+            u.PublicKey
+        }));
+    }
+
+    [HttpGet("{userId:guid}/access")]
+    public async Task<IActionResult> GetUserAccess(Guid userId)
+    {
+        var accessList = await _getUserAccessUseCase.Execute(userId);
+        return Ok(accessList);
     }
 
     [HttpGet("{username}")]

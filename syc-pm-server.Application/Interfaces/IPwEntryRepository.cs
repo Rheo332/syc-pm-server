@@ -8,5 +8,8 @@ public interface IPwEntryRepository
     Task<bool> CreateAsync(PwEntry pwEntry, Guid userId);
     Task<bool> UpdateAsync(PwEntry pwEntry, Guid userId);
     Task<bool> DeleteAsync(Guid entryId, Guid userId);
+    Task<bool> GrantAccessAsync(Guid entryId, Guid adminUserId, Guid targetUserId, string encryptedEntryKey);
+    Task<List<Guid>> GetUserAccessAsync(Guid userId);
+    Task<bool> RevokeAccessAsync(Guid entryId, Guid adminUserId, Guid targetUserId);
 }
 

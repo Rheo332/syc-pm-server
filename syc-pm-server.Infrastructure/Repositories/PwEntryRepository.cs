@@ -147,4 +147,59 @@ public class PwEntryRepository : IPwEntryRepository
         await _db.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> GrantAccessAsync(Guid entryId, Guid adminUserId, Guid targetUserId, string encryptedEntryKey)
+    {
+        var adminUser = await _db.Users.FindAsync(adminUserId);
+        if (adminUser == null || adminUser.Username != "admin")
+        {
+            return false;
+        }
+
+        var entry = await _db.PwEntries.FindAsync(entryId);
+        if (entry == null) return false;
+
+        var targetUser = await _db.Users.FindAsync(targetUserId);
+        if (targetUser == null) return false;
+
+        var existingAccess = await _db.PwEntryAccesses.FirstOrDefaultAsync(a => a.PwEntryId == entryId && a.UserId == targetUserId);
+        if (existingAccess != null) return true;
+
+        var access = new PwEntryAccess
+        {
+            PwEntryId = entryId,
+            UserId = targetUserId,
+            EncryptedEntryKey = encryptedEntryKey
+        };
+
+        _db.PwEntryAccesses.Add(access);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<Guid>> GetUserAccessAsync(Guid userId)
+    {
+        return await _db.PwEntryAccesses
+            .Where(ea => ea.UserId == userId)
+            .Select(ea => ea.PwEntryId)
+            .ToListAsync();
+    }
+
+    public async Task<bool> RevokeAccessAsync(Guid entryId, Guid adminUserId, Guid targetUserId)
+    {
+        var adminUser = await _db.Users.FindAsync(adminUserId);
+        if (adminUser == null || adminUser.Username != "admin")
+        {
+            return false;
+        }
+
+        var access = await _db.PwEntryAccesses
+            .FirstOrDefaultAsync(a => a.PwEntryId == entryId && a.UserId == targetUserId);
+
+        if (access == null) return false;
+
+        _db.PwEntryAccesses.Remove(access);
+        await _db.SaveChangesAsync();
+        return true;
+    }
 }

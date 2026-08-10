@@ -14,17 +14,23 @@ public class PwEntryController : ControllerBase
     private readonly CreatePwEntryUseCase _createPwEntryUseCase;
     private readonly EditPwEntryUseCase _editPwEntryUseCase;
     private readonly DeletePwEntryUseCase _deletePwEntryUseCase;
+    private readonly GrantAccessUseCase _grantAccessUseCase;
+    private readonly RevokeAccessUseCase _revokeAccessUseCase;
 
     public PwEntryController(
         GetPwEntryUseCase getPwEntryUseCase, 
         CreatePwEntryUseCase createPwEntryUseCase,
         EditPwEntryUseCase editPwEntryUseCase,
-        DeletePwEntryUseCase deletePwEntryUseCase)
+        DeletePwEntryUseCase deletePwEntryUseCase,
+        GrantAccessUseCase grantAccessUseCase,
+        RevokeAccessUseCase revokeAccessUseCase)
     {
         _getPwEntryUseCase = getPwEntryUseCase;
         _createPwEntryUseCase = createPwEntryUseCase;
         _editPwEntryUseCase = editPwEntryUseCase;
         _deletePwEntryUseCase = deletePwEntryUseCase;
+        _grantAccessUseCase = grantAccessUseCase;
+        _revokeAccessUseCase = revokeAccessUseCase;
     }
 
     [Authorize]
@@ -68,6 +74,32 @@ public class PwEntryController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var response = await _deletePwEntryUseCase.ExecuteAsync(userId, id);
+        if (response)
+        {
+            return Ok();
+        }
+        return BadRequest();
+    }
+
+    [Authorize]
+    [HttpPost("{id}/access")]
+    public async Task<IActionResult> GrantAccess(Guid id, [FromBody] GrantAccessRequest request)
+    {
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var response = await _grantAccessUseCase.ExecuteAsync(id, userId, request);
+        if (response)
+        {
+            return Ok();
+        }
+        return BadRequest();
+    }
+
+    [Authorize]
+    [HttpDelete("{id}/access/{targetUserId:guid}")]
+    public async Task<IActionResult> RevokeAccess(Guid id, Guid targetUserId)
+    {
+        var adminUserId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var response = await _revokeAccessUseCase.Execute(id, adminUserId, targetUserId);
         if (response)
         {
             return Ok();

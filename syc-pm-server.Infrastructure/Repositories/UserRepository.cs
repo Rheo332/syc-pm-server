@@ -20,6 +20,11 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Username == username);
     }
 
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    {
+        return await _db.Users.ToListAsync();
+    }
+
     public async Task AddAsync(User user)
     {
         _db.Users.Add(user);
