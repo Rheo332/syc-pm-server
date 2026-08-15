@@ -104,10 +104,10 @@ public class PwEntryRepository : IPwEntryRepository
         var existing = await _db.PwEntries.FindAsync(pwEntry.Id);
         if (existing == null) return false;
 
-        existing.Title = pwEntry.Title;
-        existing.Url = pwEntry.Url;
-        existing.Username = pwEntry.Username;
-        existing.Description = pwEntry.Description;
+        existing.Title = string.IsNullOrEmpty(pwEntry.Title) ? existing.Title : pwEntry.Title;
+        existing.Url = string.IsNullOrEmpty(pwEntry.Url) ? existing.Url : pwEntry.Url;
+        existing.Username = string.IsNullOrEmpty(pwEntry.Username) ? existing.Username : pwEntry.Username;
+        existing.Description = string.IsNullOrEmpty(pwEntry.Description) ? existing.Description : pwEntry.Description;
 
         // new DEK if password changed
         if (!string.IsNullOrEmpty(pwEntry.EncryptedPassword) && existing.EncryptedPassword != pwEntry.EncryptedPassword)
@@ -134,14 +134,20 @@ public class PwEntryRepository : IPwEntryRepository
 
             existing.EncryptedPassword = Convert.ToBase64String(combinedPwData);
 
-            var publicKeyBytes = Convert.FromBase64String(user!.PublicKey);
-            using var userRsa = RSA.Create();
-            userRsa.ImportRSAPublicKey(publicKeyBytes, out _);
+            var accesses = await _db.PwEntryAccesses
+                .Include(a => a.User)
+                .Where(a => a.PwEntryId == pwEntry.Id)
+                .ToListAsync();
 
-            var encryptedDek = userRsa.Encrypt(entryDek, RSAEncryptionPadding.OaepSHA256);
+            foreach (var access in accesses)
+            {
+                var pubKeyBytes = Convert.FromBase64String(access.User.PublicKey);
+                using var rsa = RSA.Create();
+                rsa.ImportRSAPublicKey(pubKeyBytes, out _);
 
-            var access = await _db.PwEntryAccesses.FirstOrDefaultAsync(a => a.PwEntryId == pwEntry.Id && a.UserId == user.Id);
-            access?.EncryptedEntryKey = Convert.ToBase64String(encryptedDek);
+                var encDek = rsa.Encrypt(entryDek, RSAEncryptionPadding.OaepSHA256);
+                access.EncryptedEntryKey = Convert.ToBase64String(encDek);
+            }
         }
 
         await _db.SaveChangesAsync();
