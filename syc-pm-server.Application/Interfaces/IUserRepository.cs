@@ -7,4 +7,5 @@ public interface IUserRepository
     Task<User?> GetByUsernameAsync(string username);
     Task<IEnumerable<User>> GetAllUsersAsync();
     Task AddAsync(User user);
+    Task<bool> DeleteAsync(Guid adminId, string username);
 }

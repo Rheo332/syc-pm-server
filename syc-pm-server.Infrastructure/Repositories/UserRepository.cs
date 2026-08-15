@@ -30,4 +30,21 @@ public class UserRepository : IUserRepository
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
     }
+
+    public async Task<bool> DeleteAsync(Guid adminId, string username)
+    {
+        var admin = await _db.Users.FindAsync(adminId);
+        if (admin == null || admin.Username != "admin") return false;
+
+        var user = await _db.Users
+            .Include(u => u.PwEntryAccesses)
+            .FirstOrDefaultAsync(u => u.Username == username);
+
+        if (user == null) return false;
+
+        _db.PwEntryAccesses.RemoveRange(user.PwEntryAccesses);
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+        return true;
+    }
 }

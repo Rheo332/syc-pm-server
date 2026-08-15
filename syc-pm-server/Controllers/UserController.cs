@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using syc_pm_server.Application.UseCases;
+using System.Security.Claims;
 
 namespace syc_pm_server.Controllers;
 
@@ -9,17 +11,20 @@ public class UserController : ControllerBase
 {
     private readonly GetUserUseCase _getUserUseCase;
     private readonly CreateUserUseCase _createUserUseCase;
+    private readonly DeleteUserUseCase _deleteUserUseCase;
     private readonly GetAllUsersUseCase _getAllUsersUseCase;
     private readonly GetUserAccessUseCase _getUserAccessUseCase;
 
     public UserController(
-        GetUserUseCase getUserUseCase, 
+        GetUserUseCase getUserUseCase,
         CreateUserUseCase createUserUseCase,
+        DeleteUserUseCase deleteUserUseCase,
         GetAllUsersUseCase getAllUsersUseCase,
         GetUserAccessUseCase getUserAccessUseCase)
     {
         _getUserUseCase = getUserUseCase;
         _createUserUseCase = createUserUseCase;
+        _deleteUserUseCase = deleteUserUseCase;
         _getAllUsersUseCase = getAllUsersUseCase;
         _getUserAccessUseCase = getUserAccessUseCase;
     }
@@ -70,5 +75,17 @@ public class UserController : ControllerBase
             return Conflict(new { Message = "Username already exists" });
 
         return Ok(new { Message = "User created successfully" });
+    }
+
+    [Authorize]
+    [HttpDelete("{username}")]
+    public async Task<IActionResult> Delete(string username)
+    {
+        var adminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var success = await _deleteUserUseCase.Execute(adminId, username);
+        if (!success)
+            return NotFound(new { Message = "User not found" });
+
+        return Ok(new { Message = "User deleted successfully" });
     }
 }

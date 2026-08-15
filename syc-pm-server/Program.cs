@@ -25,6 +25,7 @@ builder.Services.AddScoped<DeletePwEntryUseCase>();
 builder.Services.AddScoped<GetPwEntryUseCase>();
 builder.Services.AddScoped<GetUserUseCase>();
 builder.Services.AddScoped<CreateUserUseCase>();
+builder.Services.AddScoped<DeleteUserUseCase>();
 builder.Services.AddScoped<LoginUserUseCase>();
 builder.Services.AddScoped<PreloginUseCase>();
 builder.Services.AddScoped<CreateRequestUseCase>();
