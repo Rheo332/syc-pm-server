@@ -12,8 +12,8 @@ public class GetAllUsersUseCase
         _userRepository = userRepository;
     }
 
-    public async Task<IEnumerable<User>> Execute()
+    public async Task<IEnumerable<User>> Execute(Guid userId)
     {
-        return await _userRepository.GetAllUsersAsync();
+        return await _userRepository.GetAllUsersAsync(userId);
     }
 }

@@ -43,6 +43,8 @@ builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 
 // JWT
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? throw new InvalidOperationException("JWT secret is not configured.");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -57,7 +59,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = "syc-pm",
 
             IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("SUPER_SECRET_KEY_CHANGE_ME_NOW_WITH_ENOUGH_BITS") // TODO: muss noch in eine Konfigurationsdatei ausgelagert werden
+                Encoding.UTF8.GetBytes(jwtSecret)
             )
         };
     });

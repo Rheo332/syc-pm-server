@@ -20,8 +20,10 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Username == username);
     }
 
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    public async Task<IEnumerable<User>> GetAllUsersAsync(Guid userId)
     {
+        var admin = await _db.Users.FindAsync(userId);
+        if (admin == null || admin.Username != "admin") return [];
         return await _db.Users.ToListAsync();
     }
 

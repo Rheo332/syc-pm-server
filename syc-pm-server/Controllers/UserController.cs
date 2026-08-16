@@ -29,10 +29,12 @@ public class UserController : ControllerBase
         _getUserAccessUseCase = getUserAccessUseCase;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _getAllUsersUseCase.Execute();
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var users = await _getAllUsersUseCase.Execute(userId);
         return Ok(users.Select(u => new
         {
             u.Id,
